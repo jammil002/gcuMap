@@ -1,6 +1,6 @@
 # GCU AR Map
 
-This is my capstone project.
+This is my capstone project. Make sure to use node v16.
 
 ## Viro Starter Kit
 
