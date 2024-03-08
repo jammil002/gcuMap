@@ -15,17 +15,32 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos",
+        "NSPhotoLibraryAddUsageDescription": "Allow $(PRODUCT_NAME) to save photos",
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to use your camera",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use your microphone"
+      },
+      "bundleIdentifier": "com.jmeeler.iosgcuMaps"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.jmeeler.iosgcuMaps"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["@viro-community/react-viro"]
+    "plugins": [
+      "@viro-community/react-viro"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f4465f31-5b37-4b4d-be3b-efbc1fc16869"
+      }
+    }
   }
 }
