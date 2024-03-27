@@ -1,6 +1,12 @@
 import React from "react";
-import LandingScreen from "./components/screens/LandingScreen";
+import { StatusBar } from "react-native";
+import Navigation from "./components/Navigation";
 
-export default () => {
-  return <LandingScreen></LandingScreen>;
-};
+export default function App() {
+  return (
+    <>
+      <StatusBar barStyle="dark-content" />
+      <Navigation />
+    </>
+  );
+}
