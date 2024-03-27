@@ -8,15 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-interface POI {
-  NodeID: number;
-  SectionID: number;
-  Latitude: number;
-  Longitude: number;
-  Name: string | null;
-  isPOI: number | null;
-  Description: string | null;
-}
+import POI from "../../interfaces/navigationInterfaces";
 
 const SearchScreen: React.FC = () => {
   const [POIs, setPOIs] = useState<POI[]>([]);
