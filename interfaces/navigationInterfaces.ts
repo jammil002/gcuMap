@@ -1,4 +1,4 @@
-export default interface POI {
+export interface MapNode {
   NodeID: number;
   SectionID: number;
   Latitude: number;
@@ -6,4 +6,8 @@ export default interface POI {
   Name: string | null;
   isPOI: number | null;
   Description: string | null;
+}
+
+export interface POI extends MapNode {
+  isFavorite?: boolean;
 }

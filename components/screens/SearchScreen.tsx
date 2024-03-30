@@ -7,18 +7,19 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native"; // Import useNavigation
-import POI from "../../interfaces/navigationInterfaces";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { POI, MapNode } from "../../interfaces/navigationInterfaces"; // Adjust this import as necessary
 import LoadingComponent from "../LoadingComponent";
 import ErrorComponent from "../ErrorComponent";
-import { SearchScreenNavigationProp } from "../../types/navigationTypes";
 
 const SearchScreen: React.FC = () => {
   const [POIs, setPOIs] = useState<POI[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation<SearchScreenNavigationProp>(); // Use the useNavigation hook
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchPOIs = async () => {
@@ -29,8 +30,12 @@ const SearchScreen: React.FC = () => {
         if (!response.ok) {
           throw new Error("Failed to fetch");
         }
-        const data: POI[] = await response.json();
-        setPOIs(data);
+        const nodes: MapNode[] = await response.json();
+        const pois: POI[] = nodes.map((node) => ({
+          ...node,
+          isFavorite: false,
+        }));
+        setPOIs(pois);
       } catch (error) {
         setError("An error occurred while fetching the POIs.");
         console.error(error);
@@ -41,6 +46,20 @@ const SearchScreen: React.FC = () => {
 
     fetchPOIs();
   }, []);
+
+  const toggleFavorite = async (selectedPoi: POI) => {
+    const updatedPOIs = POIs.map((poi) => {
+      if (poi.NodeID === selectedPoi.NodeID) {
+        return { ...poi, isFavorite: !poi.isFavorite };
+      }
+      return poi;
+    });
+    setPOIs(updatedPOIs);
+    await AsyncStorage.setItem(
+      "favorites",
+      JSON.stringify(updatedPOIs.filter((poi) => poi.isFavorite))
+    );
+  };
 
   const filteredPOIs = useMemo(() => {
     return POIs.filter((poi) =>
@@ -60,23 +79,23 @@ const SearchScreen: React.FC = () => {
             style={styles.searchInput}
             placeholder="Search for a POI..."
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={(text) => setSearchQuery(text)}
           />
           <FlatList
             data={filteredPOIs}
             keyExtractor={(item) => item.NodeID.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.item}
-                onPress={() => {
-                  navigation.navigate("Navigate", { poi: item });
-                }}
-              >
+              <View style={styles.item}>
                 <Text style={styles.title}>{item.Name}</Text>
-                <Text style={styles.description}>
-                  {item.Description || "No description available."}
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity onPress={() => toggleFavorite(item)}>
+                  <FontAwesome5
+                    name="star"
+                    solid={item.isFavorite}
+                    size={24}
+                    color={item.isFavorite ? "purple" : "grey"}
+                  />
+                </TouchableOpacity>
+              </View>
             )}
           />
         </>
@@ -100,6 +119,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   item: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "gray",
@@ -109,10 +131,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#000",
-  },
-  description: {
-    fontSize: 14,
-    color: "#666",
+    flex: 1,
   },
 });
 
