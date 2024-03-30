@@ -11,7 +11,12 @@ const Stack = createStackNavigator();
 export default function Navigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Landing">
+      <Stack.Navigator
+        initialRouteName="Landing"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
         <Stack.Screen name="Landing" component={LandingScreen} />
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="Favorites" component={FavoritesScreen} />

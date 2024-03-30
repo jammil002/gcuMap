@@ -1,11 +1,11 @@
 import React from "react";
-import { StatusBar } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import Navigation from "./components/Navigation";
 
 export default function App() {
   return (
     <>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar style="auto" />
       <Navigation />
     </>
   );
