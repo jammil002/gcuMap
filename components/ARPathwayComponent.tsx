@@ -12,9 +12,8 @@ import {
   UserPosition,
   DistanceAndBearing,
 } from "../interfaces/navigationInterfaces";
-import { ARPathwayProps } from "../types/navigationTypes";
 
-const ARPathway: React.FC<{ navigationNodes: MapNode[] }> = ({
+const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
   navigationNodes,
 }) => {
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null);
@@ -75,12 +74,28 @@ const ARPathway: React.FC<{ navigationNodes: MapNode[] }> = ({
 
   ViroMaterials.createMaterials({
     nodeMaterial: {
-      diffuseColor: "#FF0000",
+      diffuseColor: "#532b88",
     },
   });
 
+  // Generating breadcrumbs
+  const breadcrumbs = navigationNodes
+    .slice(0, currentNodeIndex)
+    .map((node, index) => {
+      const position = convertGeoToARCoords(node, userPosition!); // Assuming userPosition is always available here
+      return (
+        <ViroSphere
+          key={`breadcrumb-${index}`}
+          position={position}
+          radius={0.05} // Smaller radius for breadcrumbs
+          materials={["nodeMaterial"]}
+        />
+      );
+    });
+
   return (
     <ViroARScene>
+      {breadcrumbs}
       {currentNode && userPosition && (
         <ViroNode
           position={convertGeoToARCoords(currentNode, userPosition)}
@@ -91,6 +106,7 @@ const ARPathway: React.FC<{ navigationNodes: MapNode[] }> = ({
             position={[0, 0, -1]}
             materials={["nodeMaterial"]}
           />
+          {/* Additional content as needed */}
         </ViroNode>
       )}
     </ViroARScene>
@@ -113,11 +129,9 @@ function getDistanceAndBearing(
       Math.cos(degreesToRadians(endLatitude)) *
       Math.sin(deltaLongitudeRadians / 2) *
       Math.sin(deltaLongitudeRadians / 2);
-
   const centralAngleRadians = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = earthRadiusMeters * centralAngleRadians; // Distance in meters
+  const distance = earthRadiusMeters * centralAngleRadians;
 
-  // Calculate bearing
   const y =
     Math.sin(deltaLongitudeRadians) * Math.cos(degreesToRadians(endLatitude));
   const x =
@@ -126,9 +140,8 @@ function getDistanceAndBearing(
     Math.sin(degreesToRadians(startLatitude)) *
       Math.cos(degreesToRadians(endLatitude)) *
       Math.cos(deltaLongitudeRadians);
-  let bearingRadians = Math.atan2(y, x);
-  let bearingDegrees = radiansToDegrees(bearingRadians);
-  bearingDegrees = (bearingDegrees + 360) % 360; // Normalize to 0-360
+  const bearingRadians = Math.atan2(y, x);
+  const bearingDegrees = (radiansToDegrees(bearingRadians) + 360) % 360;
 
   return { distance, bearing: bearingDegrees };
 }
@@ -141,4 +154,4 @@ function radiansToDegrees(radians: number): number {
   return (radians * 180) / Math.PI;
 }
 
-export default ARPathway;
+export default ARPathwayComponent;
