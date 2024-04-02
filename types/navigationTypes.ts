@@ -1,5 +1,5 @@
 import { StackNavigationProp } from "@react-navigation/stack";
-import POI from "../interfaces/navigationInterfaces";
+import { MapNode, POI } from "../interfaces/navigationInterfaces";
 
 export type RootStackParamList = {
   Landing: undefined;
@@ -18,3 +18,7 @@ export type SearchScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Search"
 >;
+
+export interface ARPathwayProps {
+  navigationNodes: MapNode[];
+}

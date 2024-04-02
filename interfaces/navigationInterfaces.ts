@@ -11,3 +11,14 @@ export interface MapNode {
 export interface POI extends MapNode {
   isFavorite?: boolean;
 }
+
+export interface UserPosition {
+  latitude: number;
+  longitude: number;
+  heading: number | null;
+}
+
+export interface DistanceAndBearing {
+  distance: number;
+  bearing: number;
+}
