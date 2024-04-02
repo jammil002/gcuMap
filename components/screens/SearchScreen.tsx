@@ -26,6 +26,9 @@ const SearchScreen: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
+        const favoritesJson = await AsyncStorage.getItem("favorites");
+        const favorites: POI[] = favoritesJson ? JSON.parse(favoritesJson) : [];
+  
         const response = await fetch("https://capstone-api-bay.vercel.app/POI");
         if (!response.ok) {
           throw new Error("Failed to fetch");
@@ -33,7 +36,7 @@ const SearchScreen: React.FC = () => {
         const nodes: MapNode[] = await response.json();
         const pois: POI[] = nodes.map((node) => ({
           ...node,
-          isFavorite: false,
+          isFavorite: favorites.some((fav: POI) => fav.NodeID === node.NodeID),
         }));
         setPOIs(pois);
       } catch (error) {
@@ -43,22 +46,35 @@ const SearchScreen: React.FC = () => {
         setIsLoading(false);
       }
     };
-
+  
     fetchPOIs();
   }, []);
 
   const toggleFavorite = async (selectedPoi: POI) => {
+    const currentFavoritesJson = await AsyncStorage.getItem("favorites");
+    let currentFavorites: POI[] = currentFavoritesJson ? JSON.parse(currentFavoritesJson) : [];
+  
+    const isAlreadyFavorite = currentFavorites.some((fav: POI) => fav.NodeID === selectedPoi.NodeID);
+  
+    if (isAlreadyFavorite) {
+      currentFavorites = currentFavorites.filter((fav: POI) => fav.NodeID !== selectedPoi.NodeID);
+    } else {
+      currentFavorites.push({
+        ...selectedPoi,
+        isFavorite: true
+      });
+    }
+  
+    await AsyncStorage.setItem("favorites", JSON.stringify(currentFavorites));
+  
     const updatedPOIs = POIs.map((poi) => {
       if (poi.NodeID === selectedPoi.NodeID) {
         return { ...poi, isFavorite: !poi.isFavorite };
       }
       return poi;
     });
+  
     setPOIs(updatedPOIs);
-    await AsyncStorage.setItem(
-      "favorites",
-      JSON.stringify(updatedPOIs.filter((poi) => poi.isFavorite))
-    );
   };
 
   const filteredPOIs = useMemo(() => {
