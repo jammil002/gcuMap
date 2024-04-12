@@ -7,6 +7,7 @@ export type RootStackParamList = {
   Favorites: undefined;
   Settings: undefined;
   Navigate: { poi: POI };
+  TestScreen: undefined;
 };
 
 export type LandingScreenNavigationProp = StackNavigationProp<
@@ -22,3 +23,8 @@ export type SearchScreenNavigationProp = StackNavigationProp<
 export interface ARPathwayProps {
   navigationNodes: MapNode[];
 }
+
+export type SettingsScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Settings"
+>;

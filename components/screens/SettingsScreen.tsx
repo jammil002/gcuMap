@@ -1,8 +1,15 @@
 import React from "react";
 import { View, Text, StyleSheet, Button, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import {
+  RootStackParamList,
+  SettingsScreenNavigationProp,
+} from "../../types/navigationTypes";
 
 export default function SettingsScreen() {
+  const navigation = useNavigation<SettingsScreenNavigationProp>();
+
   const handleDeleteData = async () => {
     Alert.alert(
       "Confirm Delete",
@@ -33,6 +40,10 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Settings Screen</Text>
       <Button title="Delete All Data" color="red" onPress={handleDeleteData} />
+      <Button
+        title="Go to Test Screen"
+        onPress={() => navigation.navigate("TestScreen")}
+      />
     </View>
   );
 }
@@ -47,6 +58,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 20, // Adjusted for better spacing
   },
 });
