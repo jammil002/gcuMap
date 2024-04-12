@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome5 } from "@expo/vector-icons";
-import POI from "../../interfaces/navigationInterfaces";
+import { POI } from "../../interfaces/navigationInterfaces";
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState<POI[]>([]);
@@ -29,10 +29,12 @@ export default function FavoritesScreen() {
   };
 
   const toggleFavorite = async (selectedPoi: POI) => {
-    let updatedFavorites = favorites.filter(fav => fav.NodeID !== selectedPoi.NodeID);
+    let updatedFavorites = favorites.filter(
+      (fav) => fav.NodeID !== selectedPoi.NodeID
+    );
 
     if (updatedFavorites.length === favorites.length) {
-      updatedFavorites.push({...selectedPoi, isFavorite: true});
+      updatedFavorites.push({ ...selectedPoi, isFavorite: true });
     }
 
     setFavorites(updatedFavorites);
@@ -51,7 +53,12 @@ export default function FavoritesScreen() {
               {item.Description || "No description available."}
             </Text>
             <TouchableOpacity onPress={() => toggleFavorite(item)}>
-              <FontAwesome5 name="star" solid={item.isFavorite} size={24} color={item.isFavorite ? "purple" : "grey"} />
+              <FontAwesome5
+                name="star"
+                solid={item.isFavorite}
+                size={24}
+                color={item.isFavorite ? "purple" : "grey"}
+              />
             </TouchableOpacity>
           </View>
         )}
