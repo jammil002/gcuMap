@@ -96,9 +96,9 @@ export default function NavigateScreen({ route }: { route: any }) {
       <Text>{poi.Name}</Text>
       <Text>{poi.Description}</Text>
       {closestNode && <Text>Closest Node ID: {closestNode.NodeID}</Text>}
-      {navigationPath.length > 0 && (
+      {/* {navigationPath.length > 0 && (
         <ARPathwayComponent navigationNodes={navigationPath} />
-      )}
+      )} */}
     </View>
   );
 }
