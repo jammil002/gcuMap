@@ -1,15 +1,13 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import {
-  createBottomTabNavigator,
-  BottomTabScreenProps,
-} from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import LandingScreen from "./screens/LandingScreen";
 import SearchScreen from "./screens/SearchScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import NavigateScreen from "./screens/NavigateScreen";
+import TestScreen from "./screens/TestScreen";
 import { AntDesign } from "@expo/vector-icons";
 
 type TabParamList = {
@@ -23,6 +21,7 @@ type RootStackParamList = {
   Main: undefined;
   Settings: undefined;
   Navigate: undefined;
+  TestScreen: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -33,7 +32,7 @@ function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: React.ComponentProps<typeof AntDesign>["name"] = "home"; // Default iconName
+          let iconName: React.ComponentProps<typeof AntDesign>["name"] = "home";
           switch (route.name) {
             case "Home":
               iconName = "home";
@@ -78,6 +77,11 @@ export default function Navigation() {
           options={{ headerShown: true }}
         />
         <Stack.Screen name="Navigate" component={NavigateScreen} />
+        <Stack.Screen
+          name="TestScreen"
+          component={TestScreen}
+          options={{ headerShown: true }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

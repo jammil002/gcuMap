@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import * as Location from "expo-location";
-import { POI } from "../../interfaces/navigationInterfaces";
+import { POI, MapNode } from "../../interfaces/navigationInterfaces";
+import ARPathwayComponent from "../ARPathwayComponent"; // Adjust the import path as necessary
 
 export default function NavigateScreen({ route }: { route: any }) {
   const { poi } = route.params as { poi: POI };
   const [closestNode, setClosestNode] = useState<POI | null>(null);
+  const [navigationPath, setNavigationPath] = useState<MapNode[]>([]); // State to hold the navigation path
 
   // Fetch user location and closest node
   useEffect(() => {
@@ -27,9 +29,7 @@ export default function NavigateScreen({ route }: { route: any }) {
           "https://capstone-api-bay.vercel.app/closestNode",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               userlatitude: currentLocation.coords.latitude,
               userlongitude: currentLocation.coords.longitude,
@@ -65,9 +65,7 @@ export default function NavigateScreen({ route }: { route: any }) {
           "https://capstone-api-bay.vercel.app/navigate",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               startId: closestNode.NodeID,
               goalId: poi.NodeID,
@@ -80,7 +78,7 @@ export default function NavigateScreen({ route }: { route: any }) {
         }
 
         const navigationData = await response.json();
-        console.log(navigationData); // Process navigation data as needed
+        setNavigationPath(navigationData.path); // Assuming the API returns a path array
       } catch (error) {
         console.error("Failed to fetch navigation path:", error);
         Alert.alert("Error", "Failed to fetch navigation path");
@@ -98,6 +96,9 @@ export default function NavigateScreen({ route }: { route: any }) {
       <Text>{poi.Name}</Text>
       <Text>{poi.Description}</Text>
       {closestNode && <Text>Closest Node ID: {closestNode.NodeID}</Text>}
+      {navigationPath.length > 0 && (
+        <ARPathwayComponent navigationNodes={navigationPath} />
+      )}
     </View>
   );
 }
