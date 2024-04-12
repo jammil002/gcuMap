@@ -13,7 +13,7 @@ import NavigateScreen from "./screens/NavigateScreen";
 import { AntDesign } from "@expo/vector-icons";
 
 type TabParamList = {
-  Landing: undefined;
+  Home: undefined;
   Search: undefined;
   Favorites: undefined;
   Settings: undefined;
@@ -33,13 +33,20 @@ function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: React.ComponentProps<typeof AntDesign>["name"] = "home"; // Default iconName to "home" to ensure it's always initialized
-          if (route.name === "Landing") {
-            iconName = "home";
-          } else if (route.name === "Search") {
-            iconName = "search1";
-          } else if (route.name === "Favorites") {
-            iconName = "star";
+          let iconName: React.ComponentProps<typeof AntDesign>["name"] = "home"; // Default iconName
+          switch (route.name) {
+            case "Home":
+              iconName = "home";
+              break;
+            case "Search":
+              iconName = "search1";
+              break;
+            case "Favorites":
+              iconName = "star";
+              break;
+            case "Settings":
+              iconName = "setting";
+              break;
           }
           return <AntDesign name={iconName} size={size} color={color} />;
         },
@@ -47,7 +54,7 @@ function MainTabNavigator() {
         tabBarInactiveTintColor: "gray",
       })}
     >
-      <Tab.Screen name="Landing" component={LandingScreen} />
+      <Tab.Screen name="Home" component={LandingScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Favorites" component={FavoritesScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
@@ -65,7 +72,11 @@ export default function Navigation() {
         }}
       >
         <Stack.Screen name="Main" component={MainTabNavigator} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{ headerShown: true }}
+        />
         <Stack.Screen name="Navigate" component={NavigateScreen} />
       </Stack.Navigator>
     </NavigationContainer>

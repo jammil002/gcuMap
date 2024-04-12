@@ -1,16 +1,15 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import {
-  RootStackParamList,
-  LandingScreenNavigationProp,
-} from "../../types/navigationTypes";
 import { useNavigation } from "@react-navigation/native";
+import { LandingScreenNavigationProp } from "../../types/navigationTypes";
 
 const LandingScreen: React.FC = () => {
   const navigation = useNavigation<LandingScreenNavigationProp>();
 
   return (
     <View style={styles.container}>
+      <Text style={styles.headerText}>gcuMaps</Text>
+      <Text style={styles.subheaderText}>an easy way to get around campus</Text>
       <TouchableOpacity onPress={() => navigation.navigate("Search")}>
         <Text style={styles.text}>Search</Text>
       </TouchableOpacity>
@@ -32,12 +31,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
     paddingLeft: 20,
-    backgroundColor: "#FFF", // Or choose a stark, plain background color typical of Neo-Brutalism
+    backgroundColor: "#FFF",
+  },
+  headerText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "purple",
+    marginBottom: 4,
+  },
+  subheaderText: {
+    fontSize: 18,
+    color: "#666",
+    marginBottom: 20,
   },
   text: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#000", // High contrast text color
-    paddingVertical: 10, // Space out the options
+    color: "#000",
+    paddingVertical: 10,
   },
 });

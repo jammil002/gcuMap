@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,25 +8,30 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { POI } from "../../interfaces/navigationInterfaces";
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState<POI[]>([]);
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const loadFavorites = async () => {
+        try {
+          const favoritesJson = await AsyncStorage.getItem("favorites");
+          if (favoritesJson) {
+            setFavorites(JSON.parse(favoritesJson));
+          }
+        } catch (error) {
+          console.error("Error loading favorites:", error);
+        }
+      };
 
-  const loadFavorites = async () => {
-    try {
-      const favoritesJson = await AsyncStorage.getItem("favorites");
-      if (favoritesJson) {
-        setFavorites(JSON.parse(favoritesJson));
-      }
-    } catch (error) {
-      console.error("Error loading favorites:", error);
-    }
-  };
+      loadFavorites();
+
+      return () => {};
+    }, [])
+  );
 
   const toggleFavorite = async (selectedPoi: POI) => {
     let updatedFavorites = favorites.filter(
@@ -72,14 +77,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
-  },
-  searchInput: {
-    marginBottom: 20,
-    paddingHorizontal: 10,
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
   },
   item: {
     flexDirection: "row",
