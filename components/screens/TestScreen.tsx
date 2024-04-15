@@ -1,119 +1,122 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, Button, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 import * as Location from "expo-location";
 import {
-  ViroARScene,
   ViroARSceneNavigator,
-  ViroText,
+  ViroARScene,
+  ViroSphere,
+  ViroMaterials,
 } from "@viro-community/react-viro";
 
 const TestScreen = () => {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [showARScene, setShowARScene] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup function to handle component unmount and other cleanup operations
+      setShowARScene(false);
+      setLoading(false);
+    };
+  }, []);
 
   const handleSetCurrentLocation = async () => {
+    setLoading(true);
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
         "Permission Denied",
         "Permission to access location was denied"
       );
+      setLoading(false);
       return;
     }
 
-    let location = await Location.getCurrentPositionAsync({});
-    setLatitude(String(location.coords.latitude));
-    setLongitude(String(location.coords.longitude));
-  };
-
-  const handleARSceneInitialized = (state: any, reason: any) => {
-    // You might need to adjust the handling here based on your specific use case
-    if (state === "TRACKING_NORMAL") {
-      // handle normal tracking state
-    } else if (state === "TRACKING_NONE") {
-      // handle tracking loss
+    try {
+      let location = await Location.getCurrentPositionAsync({});
+      setLatitude(String(location.coords.latitude));
+      setLongitude(String(location.coords.longitude));
+    } catch (error) {
+      Alert.alert("Error", "Failed to fetch location");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const startARScene = () => {
+    if (!latitude || !longitude) {
+      Alert.alert(
+        "Invalid Input",
+        "Please enter valid latitude and longitude."
+      );
+      return;
+    }
+    setShowARScene(true);
+  };
+
+  const renderARScene = () => (
+    <ViroARScene>
+      <ViroSphere
+        position={[0, 0, -2]} // Position the sphere 2 meters in front of the user
+        radius={0.1} // Sphere radius
+        materials={["sphereMaterial"]}
+      />
+    </ViroARScene>
+  );
+
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <Text style={styles.title}>
-          Set Location Manually or Use Current Location
-        </Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={setLatitude}
-          value={latitude}
-          placeholder="Enter latitude"
-          keyboardType="numeric"
+      {!showARScene && (
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={latitude}
+            onChangeText={setLatitude}
+            placeholder="Latitude"
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={styles.input}
+            value={longitude}
+            onChangeText={setLongitude}
+            placeholder="Longitude"
+            keyboardType="numeric"
+          />
+          <Button
+            title="Use Current Location"
+            onPress={handleSetCurrentLocation}
+            disabled={loading}
+          />
+          <Button title="Start AR Scene" onPress={startARScene} />
+        </View>
+      )}
+      {showARScene && (
+        <ViroARSceneNavigator
+          autofocus={true}
+          initialScene={{ scene: renderARScene }}
+          style={{ flex: 1 }}
         />
-        <TextInput
-          style={styles.input}
-          onChangeText={setLongitude}
-          value={longitude}
-          placeholder="Enter longitude"
-          keyboardType="numeric"
-        />
-        <Button
-          title="Set to Current Location"
-          onPress={handleSetCurrentLocation}
-        />
-        <Button
-          title="Save"
-          onPress={() =>
-            Alert.alert(
-              "Location Set",
-              `Latitude: ${latitude}, Longitude: ${longitude}`
-            )
-          }
-        />
-      </View>
-      <ViroARSceneNavigator
-        initialScene={{
-          scene: () => (
-            <ViroARScene onTrackingUpdated={handleARSceneInitialized}>
-              <ViroText
-                text={`Node at Lat: ${latitude}, Long: ${longitude}`}
-                position={[0, 0, -1]}
-                style={styles.arText}
-              />
-            </ViroARScene>
-          ),
-        }}
-        style={{ flex: 1 }}
-      />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  inputContainer: {
     padding: 20,
     alignItems: "center",
-    justifyContent: "flex-start",
-    backgroundColor: "#f5f5f5",
-    height: 200,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
+    justifyContent: "center",
   },
   input: {
-    width: "90%",
-    padding: 10,
-    marginVertical: 10,
+    height: 40,
+    margin: 12,
     borderWidth: 1,
-    borderColor: "gray",
-    borderRadius: 5,
-  },
-  arText: {
-    fontFamily: "Arial",
-    fontSize: 30,
-    color: "#ffffff",
-    textAlignVertical: "center",
-    textAlign: "center",
+    padding: 10,
+    width: 200,
+    borderRadius: 4,
   },
 });
 

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "expo-starter-kit-typescript",
+    "name": "gcuMaps-dev",
     "slug": "expo-starter-kit-typescript",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,9 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -22,25 +20,29 @@
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to use your camera",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use your microphone"
       },
-      "bundleIdentifier": "com.jmeeler.iosgcuMaps"
+      "bundleIdentifier": "dev.jamesmiller.gcuMaps.test"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.jmeeler.iosgcuMaps"
+      "package": "dev.jamesmiller.gcuMaps.test"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "@viro-community/react-viro"
-    ],
+    "plugins": ["@viro-community/react-viro"],
     "extra": {
       "eas": {
         "projectId": "f4465f31-5b37-4b4d-be3b-efbc1fc16869"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f4465f31-5b37-4b4d-be3b-efbc1fc16869"
     }
   }
 }
