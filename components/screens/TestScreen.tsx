@@ -8,6 +8,12 @@ import {
   ViroMaterials,
 } from "@viro-community/react-viro";
 
+ViroMaterials.createMaterials({
+  sphereMaterial: {
+    diffuseColor: "#1F00FF",
+  },
+});
+
 const TestScreen = () => {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
