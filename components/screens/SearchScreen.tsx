@@ -13,13 +13,14 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { POI, MapNode } from "../../interfaces/navigationInterfaces"; // Adjust this import as necessary
 import LoadingComponent from "../LoadingComponent";
 import ErrorComponent from "../ErrorComponent";
+import { SearchScreenNavigationProp } from "../../types/navigationTypes";
 
 const SearchScreen: React.FC = () => {
   const [POIs, setPOIs] = useState<POI[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<SearchScreenNavigationProp>();
 
   useEffect(() => {
     const fetchPOIs = async () => {
@@ -28,7 +29,7 @@ const SearchScreen: React.FC = () => {
       try {
         const favoritesJson = await AsyncStorage.getItem("favorites");
         const favorites: POI[] = favoritesJson ? JSON.parse(favoritesJson) : [];
-  
+
         const response = await fetch("https://capstone-api-bay.vercel.app/POI");
         if (!response.ok) {
           throw new Error("Failed to fetch");
@@ -46,34 +47,40 @@ const SearchScreen: React.FC = () => {
         setIsLoading(false);
       }
     };
-  
+
     fetchPOIs();
   }, []);
 
   const toggleFavorite = async (selectedPoi: POI) => {
     const currentFavoritesJson = await AsyncStorage.getItem("favorites");
-    let currentFavorites: POI[] = currentFavoritesJson ? JSON.parse(currentFavoritesJson) : [];
-  
-    const isAlreadyFavorite = currentFavorites.some((fav: POI) => fav.NodeID === selectedPoi.NodeID);
-  
+    let currentFavorites: POI[] = currentFavoritesJson
+      ? JSON.parse(currentFavoritesJson)
+      : [];
+
+    const isAlreadyFavorite = currentFavorites.some(
+      (fav: POI) => fav.NodeID === selectedPoi.NodeID
+    );
+
     if (isAlreadyFavorite) {
-      currentFavorites = currentFavorites.filter((fav: POI) => fav.NodeID !== selectedPoi.NodeID);
+      currentFavorites = currentFavorites.filter(
+        (fav: POI) => fav.NodeID !== selectedPoi.NodeID
+      );
     } else {
       currentFavorites.push({
         ...selectedPoi,
-        isFavorite: true
+        isFavorite: true,
       });
     }
-  
+
     await AsyncStorage.setItem("favorites", JSON.stringify(currentFavorites));
-  
+
     const updatedPOIs = POIs.map((poi) => {
       if (poi.NodeID === selectedPoi.NodeID) {
         return { ...poi, isFavorite: !poi.isFavorite };
       }
       return poi;
     });
-  
+
     setPOIs(updatedPOIs);
   };
 
@@ -102,7 +109,16 @@ const SearchScreen: React.FC = () => {
             keyExtractor={(item) => item.NodeID.toString()}
             renderItem={({ item }) => (
               <View style={styles.item}>
-                <Text style={styles.title}>{item.Name}</Text>
+                <TouchableOpacity>
+                  <Text
+                    style={styles.title}
+                    onPress={() =>
+                      navigation.navigate("Navigate", { poi: item })
+                    }
+                  >
+                    {item.Name}
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => toggleFavorite(item)}>
                   <FontAwesome5
                     name="star"
