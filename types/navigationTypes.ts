@@ -28,3 +28,8 @@ export type SettingsScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Settings"
 >;
+
+export type FavoritesScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Favorites"
+>;

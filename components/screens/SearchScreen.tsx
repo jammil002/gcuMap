@@ -108,13 +108,18 @@ const SearchScreen: React.FC = () => {
             data={filteredPOIs}
             keyExtractor={(item) => item.NodeID.toString()}
             renderItem={({ item }) => (
-              <View style={styles.item}>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => navigation.navigate("Navigate", { poi: item })}
+              >
+                <Text style={styles.title}>{item.Name}</Text>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate("Navigate", { poi: item })}
+                  style={styles.favoriteIcon}
+                  onPress={(e) => {
+                    e.stopPropagation(); // Prevent the touch event from bubbling up to the parent
+                    toggleFavorite(item);
+                  }}
                 >
-                  <Text style={styles.title}>{item.Name}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => toggleFavorite(item)}>
                   <FontAwesome5
                     name="star"
                     solid={item.isFavorite}
@@ -122,7 +127,7 @@ const SearchScreen: React.FC = () => {
                     color={item.isFavorite ? "purple" : "grey"}
                   />
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             )}
           />
         </>
@@ -147,7 +152,7 @@ const styles = StyleSheet.create({
   },
   item: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-between", // This ensures that the star is pushed to the right
     alignItems: "center",
     padding: 10,
     borderBottomWidth: 1,
@@ -158,7 +163,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#000",
-    flex: 1,
+    flex: 1, // Ensures the title takes up all available space pushing the star icon to the edge
+  },
+  description: {
+    fontSize: 14,
+    color: "#666",
+  },
+  favoriteIcon: {
+    padding: 10, // Ensures there is ample space to tap the icon
   },
 });
 

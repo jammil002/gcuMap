@@ -8,11 +8,13 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { POI } from "../../interfaces/navigationInterfaces";
+import { FavoritesScreenNavigationProp } from "../../types/navigationTypes";
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState<POI[]>([]);
+  const navigation = useNavigation<FavoritesScreenNavigationProp>(); // Use navigation hook
 
   useFocusEffect(
     useCallback(() => {
@@ -28,8 +30,6 @@ export default function FavoritesScreen() {
       };
 
       loadFavorites();
-
-      return () => {};
     }, [])
   );
 
@@ -52,12 +52,23 @@ export default function FavoritesScreen() {
         data={favorites}
         keyExtractor={(item) => item.NodeID.toString()}
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.title}>{item.Name}</Text>
-            <Text style={styles.description}>
-              {item.Description || "No description available."}
-            </Text>
-            <TouchableOpacity onPress={() => toggleFavorite(item)}>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate("Navigate", { poi: item })}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.title}>{item.Name}</Text>
+              <Text style={styles.description}>
+                {item.Description || "No description available."}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation(); // Prevent navigation when toggling the favorite
+                toggleFavorite(item);
+              }}
+              style={{ padding: 10 }}
+            >
               <FontAwesome5
                 name="star"
                 solid={item.isFavorite}
@@ -65,7 +76,7 @@ export default function FavoritesScreen() {
                 color={item.isFavorite ? "purple" : "grey"}
               />
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>
@@ -91,11 +102,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#000",
-    flex: 1,
+    flex: 1, // This pushes the star icon to the right
   },
   description: {
     fontSize: 14,
     color: "#666",
-    flex: 1,
+    flex: 1, // Ensures description fills the space and is aligned properly
+  },
+  favoriteIcon: {
+    padding: 10, // Provides padding for easier tapping
   },
 });

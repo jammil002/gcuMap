@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Alert } from "react-native";
 import * as Location from "expo-location";
 import { POI, MapNode } from "../../interfaces/navigationInterfaces";
 import { ViroARSceneNavigator } from "@viro-community/react-viro";
-import ARPathwayComponent from "../ARPathwayComponent"; // Adjust the import path as necessary
+import ARPathwayComponent from "../ARPathwayComponent";
+import { ARTestComponent } from "../ARTestComponent";
 
 export default function NavigateScreen({ route }: { route: any }) {
   const { poi } = route.params as { poi: POI };
@@ -88,35 +89,35 @@ export default function NavigateScreen({ route }: { route: any }) {
     }
   }, [closestNode, poi]);
 
+  const styles = StyleSheet.create({
+    mainContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    arView: {
+      flex: 1, // Ensures that the AR view occupies the full space
+    },
+    loadingText: {
+      fontSize: 18, // Or any appropriate size
+      color: "#000", // Any color that suits your design
+      textAlign: "center", // Centers text horizontally
+    },
+  });
+
   return (
-    <View style={styles.container}>
-      <Text>Navigation Station</Text>
-      <Text>{poi.Name}</Text>
-      <Text>{poi.Description}</Text>
-      {closestNode && <Text>Closest Node ID: {closestNode.NodeID}</Text>}
-      {navigationPath.length > 0 && (
+    <View
+      style={navigationPath.length > 0 ? styles.arView : styles.mainContainer}
+    >
+      {navigationPath.length > 0 ? (
         <ViroARSceneNavigator
           autofocus={true}
-          initialScene={{
-            scene: () => (
-              <ARPathwayComponent navigationNodes={navigationPath} />
-            ),
-          }}
+          initialScene={{ scene: ARTestComponent }}
           style={styles.arView}
         />
+      ) : (
+        <Text style={styles.loadingText}>Loading navigation path...</Text>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  arView: {
-    flex: 1, // Ensures that the AR view occupies the full space
-    width: "100%",
-  },
-});
