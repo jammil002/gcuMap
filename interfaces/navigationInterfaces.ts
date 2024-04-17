@@ -1,8 +1,8 @@
 export interface MapNode {
   NodeID: number;
   SectionID: number;
-  Latitude: number;
-  Longitude: number;
+  latitude: number;
+  longitude: number;
   Name: string | null;
   isPOI: number | null;
   Description: string | null;

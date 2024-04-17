@@ -2,14 +2,14 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import * as Location from "expo-location";
 import { POI, MapNode } from "../../interfaces/navigationInterfaces";
+import { ViroARSceneNavigator } from "@viro-community/react-viro";
 import ARPathwayComponent from "../ARPathwayComponent"; // Adjust the import path as necessary
 
 export default function NavigateScreen({ route }: { route: any }) {
   const { poi } = route.params as { poi: POI };
   const [closestNode, setClosestNode] = useState<POI | null>(null);
-  const [navigationPath, setNavigationPath] = useState<MapNode[]>([]); // State to hold the navigation path
+  const [navigationPath, setNavigationPath] = useState<MapNode[]>([]);
 
-  // Fetch user location and closest node
   useEffect(() => {
     const fetchLocationAndClosestNode = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -22,9 +22,7 @@ export default function NavigateScreen({ route }: { route: any }) {
       }
 
       let currentLocation = await Location.getCurrentPositionAsync({});
-
       try {
-        // Fetch the closest node using the user's current location
         const response = await fetch(
           "https://capstone-api-bay.vercel.app/closestNode",
           {
@@ -52,7 +50,6 @@ export default function NavigateScreen({ route }: { route: any }) {
     fetchLocationAndClosestNode();
   }, []);
 
-  // Automatically navigate once both NodeIDs are known
   useEffect(() => {
     const navigateToPOI = async () => {
       if (!closestNode || !poi) {
@@ -78,7 +75,8 @@ export default function NavigateScreen({ route }: { route: any }) {
         }
 
         const navigationData = await response.json();
-        setNavigationPath(navigationData.path); // Assuming the API returns a path array
+        console.log(navigationData);
+        setNavigationPath(navigationData.path);
       } catch (error) {
         console.error("Failed to fetch navigation path:", error);
         Alert.alert("Error", "Failed to fetch navigation path");
@@ -88,7 +86,7 @@ export default function NavigateScreen({ route }: { route: any }) {
     if (closestNode && poi) {
       navigateToPOI();
     }
-  }, [closestNode, poi]); // This useEffect depends on closestNode and poi
+  }, [closestNode, poi]);
 
   return (
     <View style={styles.container}>
@@ -97,7 +95,15 @@ export default function NavigateScreen({ route }: { route: any }) {
       <Text>{poi.Description}</Text>
       {closestNode && <Text>Closest Node ID: {closestNode.NodeID}</Text>}
       {navigationPath.length > 0 && (
-        <ARPathwayComponent navigationNodes={navigationPath} />
+        <ViroARSceneNavigator
+          autofocus={true}
+          initialScene={{
+            scene: () => (
+              <ARPathwayComponent navigationNodes={navigationPath} />
+            ),
+          }}
+          style={styles.arView}
+        />
       )}
     </View>
   );
@@ -108,5 +114,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  arView: {
+    flex: 1, // Ensures that the AR view occupies the full space
+    width: "100%",
   },
 });

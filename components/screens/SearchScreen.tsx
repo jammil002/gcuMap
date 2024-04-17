@@ -109,15 +109,10 @@ const SearchScreen: React.FC = () => {
             keyExtractor={(item) => item.NodeID.toString()}
             renderItem={({ item }) => (
               <View style={styles.item}>
-                <TouchableOpacity>
-                  <Text
-                    style={styles.title}
-                    onPress={() =>
-                      navigation.navigate("Navigate", { poi: item })
-                    }
-                  >
-                    {item.Name}
-                  </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("Navigate", { poi: item })}
+                >
+                  <Text style={styles.title}>{item.Name}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => toggleFavorite(item)}>
                   <FontAwesome5

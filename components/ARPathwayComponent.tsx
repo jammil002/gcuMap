@@ -5,6 +5,7 @@ import {
   ViroNode,
   ViroMaterials,
   ViroSphere,
+  ViroARSceneNavigator,
 } from "@viro-community/react-viro";
 import * as Location from "expo-location";
 import {
@@ -50,22 +51,41 @@ const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
     node: MapNode,
     userPosition: UserPosition
   ): [number, number, number] => {
+    if (
+      !userPosition ||
+      userPosition.latitude === undefined ||
+      userPosition.longitude === undefined
+    ) {
+      console.log("User position is not properly defined.");
+      return [0, 0, 0];
+    }
+
+    console.log(
+      "User Position:",
+      userPosition.latitude,
+      userPosition.longitude
+    );
+    console.log("Node Position:", node.longitude, node.latitude);
+
     // Calculate distance and bearing
     const { distance, bearing } = getDistanceAndBearing(
       userPosition.latitude,
       userPosition.longitude,
-      node.Latitude,
-      node.Longitude
+      node.latitude,
+      node.longitude
     );
 
+    console.log(`Distance: ${distance}, Bearing: ${bearing}`);
+
     // Convert distance and bearing to AR coordinates
-    if (userPosition.heading) {
+    if (userPosition.heading !== undefined && userPosition.heading !== null) {
       const angleFromUserHeading = (bearing - userPosition.heading + 360) % 360;
       const radians = (angleFromUserHeading * Math.PI) / 180;
 
       const x = Math.cos(radians) * distance;
       const z = Math.sin(radians) * distance;
 
+      console.log(`X: ${x}, Z: ${z}`);
       return [x, 0, -z];
     }
 
@@ -82,7 +102,8 @@ const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
   const breadcrumbs = navigationNodes
     .slice(0, currentNodeIndex)
     .map((node, index) => {
-      const position = convertGeoToARCoords(node, userPosition!); // Assuming userPosition is always available here
+      const position = convertGeoToARCoords(node, userPosition!);
+      console.log("Calculated AR Coords"); // Assuming userPosition is always available here
       return (
         <ViroSphere
           key={`breadcrumb-${index}`}
@@ -119,31 +140,52 @@ function getDistanceAndBearing(
   endLatitude: number,
   endLongitude: number
 ): DistanceAndBearing {
+  // Convert degrees to radians
+  function degreesToRadians(degrees: number): number {
+    return (degrees * Math.PI) / 180;
+  }
+
+  console.log(startLatitude, startLongitude, endLatitude, endLongitude);
+
+  // Ensure the input values are within the valid range
+  if (
+    !isFinite(startLatitude) ||
+    !isFinite(startLongitude) ||
+    !isFinite(endLatitude) ||
+    !isFinite(endLongitude)
+  ) {
+    console.error("Invalid input values for latitude or longitude");
+    return { distance: NaN, bearing: NaN };
+  }
+
   const earthRadiusMeters = 6371000; // Radius of the Earth in meters
-  const deltaLatitudeRadians = degreesToRadians(endLatitude - startLatitude);
-  const deltaLongitudeRadians = degreesToRadians(endLongitude - startLongitude);
+  const lat1 = degreesToRadians(startLatitude);
+  const lon1 = degreesToRadians(startLongitude);
+  const lat2 = degreesToRadians(endLatitude);
+  const lon2 = degreesToRadians(endLongitude);
+
+  const deltaLat = lat2 - lat1;
+  const deltaLon = lon2 - lon1;
 
   const a =
-    Math.sin(deltaLatitudeRadians / 2) * Math.sin(deltaLatitudeRadians / 2) +
-    Math.cos(degreesToRadians(startLatitude)) *
-      Math.cos(degreesToRadians(endLatitude)) *
-      Math.sin(deltaLongitudeRadians / 2) *
-      Math.sin(deltaLongitudeRadians / 2);
-  const centralAngleRadians = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = earthRadiusMeters * centralAngleRadians;
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(lat1) *
+      Math.cos(lat2) *
+      Math.sin(deltaLon / 2) *
+      Math.sin(deltaLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  const y =
-    Math.sin(deltaLongitudeRadians) * Math.cos(degreesToRadians(endLatitude));
+  const distance = earthRadiusMeters * c;
+
+  const y = Math.sin(deltaLon) * Math.cos(lat2);
   const x =
-    Math.cos(degreesToRadians(startLatitude)) *
-      Math.sin(degreesToRadians(endLatitude)) -
-    Math.sin(degreesToRadians(startLatitude)) *
-      Math.cos(degreesToRadians(endLatitude)) *
-      Math.cos(deltaLongitudeRadians);
-  const bearingRadians = Math.atan2(y, x);
-  const bearingDegrees = (radiansToDegrees(bearingRadians) + 360) % 360;
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
+  const bearingDegrees = (Math.atan2(y, x) * 180) / Math.PI;
+  const bearing = (bearingDegrees + 360) % 360; // Normalize bearing
 
-  return { distance, bearing: bearingDegrees };
+  console.log(`Calculated Distance: ${distance}, Bearing: ${bearing}`);
+  return { distance, bearing };
 }
 
 function degreesToRadians(degrees: number): number {
