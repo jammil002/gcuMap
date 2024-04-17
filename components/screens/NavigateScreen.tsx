@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Alert } from "react-native";
 import * as Location from "expo-location";
 import { POI, MapNode } from "../../interfaces/navigationInterfaces";
 import { ViroARSceneNavigator } from "@viro-community/react-viro";
-import ARPathwayComponent from "../ARPathwayComponent";
+import { ARPathwayComponent } from "../ARPathwayComponent";
 import { ARTestComponent } from "../ARTestComponent";
 
 export default function NavigateScreen({ route }: { route: any }) {
@@ -112,8 +112,12 @@ export default function NavigateScreen({ route }: { route: any }) {
       {navigationPath.length > 0 ? (
         <ViroARSceneNavigator
           autofocus={true}
-          initialScene={{ scene: ARTestComponent }}
-          style={styles.arView}
+          // initialScene={{ scene: ARTestComponent }}
+          initialScene={{
+            scene: () => (
+              <ARPathwayComponent navigationNodes={navigationPath} />
+            ),
+          }}
         />
       ) : (
         <Text style={styles.loadingText}>Loading navigation path...</Text>

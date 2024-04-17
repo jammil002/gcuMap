@@ -5,69 +5,71 @@ import {
   ViroNode,
   ViroMaterials,
   ViroSphere,
-  ViroARSceneNavigator,
 } from "@viro-community/react-viro";
 import * as Location from "expo-location";
-import {
-  MapNode,
-  UserPosition,
-  DistanceAndBearing,
-} from "../interfaces/navigationInterfaces";
+import { MapNode, UserPosition } from "../interfaces/navigationInterfaces";
 
-const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
+export const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
   navigationNodes,
 }) => {
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null);
-  const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
-  const currentNode = navigationNodes[currentNodeIndex];
 
   useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Location Permission",
-          "Permission to access location was denied"
-        );
-        return;
-      }
-
-      const subscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.High, distanceInterval: 1 },
-        (location) => {
-          setUserPosition({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            heading: location.coords.heading,
-          });
+    const requestPermissionsAndWatchPosition = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          console.error("Location permission not granted");
+          Alert.alert(
+            "Location Permission",
+            "Permission to access location was denied"
+          );
+          return;
         }
-      );
 
-      return () => subscription.remove();
-    })();
+        const subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            distanceInterval: 1, // Update on every meter moved
+          },
+          (update) => {
+            console.log("New user position received:", update.coords);
+            setUserPosition({
+              latitude: update.coords.latitude,
+              longitude: update.coords.longitude,
+              heading: update.coords.heading,
+            });
+          }
+        );
+
+        return () => {
+          console.log("Removing location subscription");
+          subscription.remove();
+        };
+      } catch (error) {
+        console.error("Failed to set up location watch:", error);
+        Alert.alert("Location Error", "Failed to start location monitoring");
+      }
+    };
+
+    requestPermissionsAndWatchPosition();
   }, []);
 
-  const convertGeoToARCoords = (
-    node: MapNode,
-    userPosition: UserPosition
-  ): [number, number, number] => {
-    if (
-      !userPosition ||
-      userPosition.latitude === undefined ||
-      userPosition.longitude === undefined
-    ) {
-      console.log("User position is not properly defined.");
-      return [0, 0, 0];
+  const convertGeoToARCoords = (node: MapNode): [number, number, number] => {
+    if (!userPosition) {
+      console.log("User position is not available yet.");
+      return [0, 0, -1]; // Early return if user position is not defined
     }
 
     console.log(
       "User Position:",
       userPosition.latitude,
-      userPosition.longitude
+      userPosition.longitude,
+      "Node Position:",
+      node.latitude,
+      node.longitude
     );
-    console.log("Node Position:", node.longitude, node.latitude);
 
-    // Calculate distance and bearing
     const { distance, bearing } = getDistanceAndBearing(
       userPosition.latitude,
       userPosition.longitude,
@@ -77,19 +79,14 @@ const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
 
     console.log(`Distance: ${distance}, Bearing: ${bearing}`);
 
-    // Convert distance and bearing to AR coordinates
-    if (userPosition.heading !== undefined && userPosition.heading !== null) {
-      const angleFromUserHeading = (bearing - userPosition.heading + 360) % 360;
-      const radians = (angleFromUserHeading * Math.PI) / 180;
+    const angleFromUserHeading =
+      (bearing - (userPosition.heading || 0) + 360) % 360;
+    const radians = (angleFromUserHeading * Math.PI) / 180;
+    const x = Math.cos(radians) * distance;
+    const z = -Math.sin(radians) * distance;
 
-      const x = Math.cos(radians) * distance;
-      const z = Math.sin(radians) * distance;
-
-      console.log(`X: ${x}, Z: ${z}`);
-      return [x, 0, -z];
-    }
-
-    return [0, 0, 0];
+    console.log(`X: ${x}, Z: ${z}`);
+    return [x, 0, z];
   };
 
   ViroMaterials.createMaterials({
@@ -98,102 +95,61 @@ const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
     },
   });
 
-  // Generating breadcrumbs
-  const breadcrumbs = navigationNodes
-    .slice(0, currentNodeIndex)
-    .map((node, index) => {
-      const position = convertGeoToARCoords(node, userPosition!);
-      console.log("Calculated AR Coords"); // Assuming userPosition is always available here
-      return (
-        <ViroSphere
-          key={`breadcrumb-${index}`}
-          position={position}
-          radius={0.05} // Smaller radius for breadcrumbs
-          materials={["nodeMaterial"]}
-        />
-      );
-    });
-
   return (
     <ViroARScene>
-      {breadcrumbs}
-      {currentNode && userPosition && (
-        <ViroNode
-          position={convertGeoToARCoords(currentNode, userPosition)}
-          key={currentNode.NodeID}
-        >
+      {navigationNodes.map((node, index) => {
+        const position = convertGeoToARCoords(node);
+        console.log(`Sphere position for node ${node.NodeID}:`, position);
+        return (
           <ViroSphere
-            radius={0.1}
-            position={[0, 0, -1]}
+            key={`breadcrumb-${index}`}
+            position={position}
+            radius={0.02} // Smaller radius for breadcrumbs
             materials={["nodeMaterial"]}
           />
-          {/* Additional content as needed */}
-        </ViroNode>
-      )}
+        );
+      })}
     </ViroARScene>
   );
 };
 
 function getDistanceAndBearing(
-  startLatitude: number,
-  startLongitude: number,
-  endLatitude: number,
-  endLongitude: number
-): DistanceAndBearing {
-  // Convert degrees to radians
-  function degreesToRadians(degrees: number): number {
-    return (degrees * Math.PI) / 180;
-  }
-
-  console.log(startLatitude, startLongitude, endLatitude, endLongitude);
-
-  // Ensure the input values are within the valid range
-  if (
-    !isFinite(startLatitude) ||
-    !isFinite(startLongitude) ||
-    !isFinite(endLatitude) ||
-    !isFinite(endLongitude)
-  ) {
-    console.error("Invalid input values for latitude or longitude");
-    return { distance: NaN, bearing: NaN };
-  }
-
-  const earthRadiusMeters = 6371000; // Radius of the Earth in meters
-  const lat1 = degreesToRadians(startLatitude);
-  const lon1 = degreesToRadians(startLongitude);
-  const lat2 = degreesToRadians(endLatitude);
-  const lon2 = degreesToRadians(endLongitude);
-
-  const deltaLat = lat2 - lat1;
-  const deltaLon = lon2 - lon1;
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  console.log(
+    "Calculating distance and bearing from",
+    lat1,
+    lon1,
+    "to",
+    lat2,
+    lon2
+  );
+  const earthRadiusMeters = 6371000; // Earth's radius in meters
+  const phi1 = (lat1 * Math.PI) / 180; // φ1, φ2 in radians
+  const phi2 = (lat2 * Math.PI) / 180;
+  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
 
   const a =
-    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1) *
-      Math.cos(lat2) *
-      Math.sin(deltaLon / 2) *
-      Math.sin(deltaLon / 2);
+    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+    Math.cos(phi1) *
+      Math.cos(phi2) *
+      Math.sin(deltaLambda / 2) *
+      Math.sin(deltaLambda / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  const distance = earthRadiusMeters * c;
-
-  const y = Math.sin(deltaLon) * Math.cos(lat2);
+  const distance = earthRadiusMeters * c; // Calculate the distance in meters
+  const y = Math.sin(deltaLambda) * Math.cos(phi2);
   const x =
-    Math.cos(lat1) * Math.sin(lat2) -
-    Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
-  const bearingDegrees = (Math.atan2(y, x) * 180) / Math.PI;
-  const bearing = (bearingDegrees + 360) % 360; // Normalize bearing
+    Math.cos(phi1) * Math.sin(phi2) -
+    Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+  const bearingDegrees = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360; // Normalize bearing to 0-360 degrees
 
-  console.log(`Calculated Distance: ${distance}, Bearing: ${bearing}`);
-  return { distance, bearing };
+  console.log(
+    `Computed Distance: ${distance} meters, Bearing: ${bearingDegrees} degrees`
+  );
+  return { distance, bearing: bearingDegrees };
 }
-
-function degreesToRadians(degrees: number): number {
-  return (degrees * Math.PI) / 180;
-}
-
-function radiansToDegrees(radians: number): number {
-  return (radians * 180) / Math.PI;
-}
-
-export default ARPathwayComponent;
