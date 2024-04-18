@@ -1,4 +1,5 @@
 export interface MapNode {
+  id: number;
   NodeID: number;
   SectionID: number;
   latitude: number;

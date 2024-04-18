@@ -95,11 +95,13 @@ export const ARPathwayComponent: React.FC<{ navigationNodes: MapNode[] }> = ({
     },
   });
 
+  console.log("Rendering AR Pathway Component with nodes:", navigationNodes);
+
   return (
     <ViroARScene>
       {navigationNodes.map((node, index) => {
         const position = convertGeoToARCoords(node);
-        console.log(`Sphere position for node ${node.NodeID}:`, position);
+        console.log(`Sphere position for node ${node.id}:`, position);
         return (
           <ViroSphere
             key={`breadcrumb-${index}`}

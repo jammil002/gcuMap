@@ -112,12 +112,12 @@ export default function NavigateScreen({ route }: { route: any }) {
       {navigationPath.length > 0 ? (
         <ViroARSceneNavigator
           autofocus={true}
-          // initialScene={{ scene: ARTestComponent }}
-          initialScene={{
-            scene: () => (
-              <ARPathwayComponent navigationNodes={navigationPath} />
-            ),
-          }}
+          initialScene={{ scene: ARTestComponent }}
+          // initialScene={{
+          //   scene: () => (
+          //     <ARPathwayComponent navigationNodes={navigationPath} />
+          //   ),
+          // }}
         />
       ) : (
         <Text style={styles.loadingText}>Loading navigation path...</Text>
