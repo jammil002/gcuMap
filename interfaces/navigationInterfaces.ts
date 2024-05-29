@@ -4,6 +4,7 @@ export interface MapNode {
   SectionID: number;
   latitude: number;
   longitude: number;
+  floor: number;      // floor property
   Name: string | null;
   isPOI: number | null;
   Description: string | null;
